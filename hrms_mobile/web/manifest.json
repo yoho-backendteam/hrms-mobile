@@ -1,0 +1,11 @@
+{
+    "name": "HRMS Enterprise",
+    "short_name": "HRMS",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#F8FAFC",
+    "theme_color": "#E1533E",
+    "description": "HRMS Enterprise Mobile Application",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}
