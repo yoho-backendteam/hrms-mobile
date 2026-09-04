@@ -6,6 +6,7 @@ import '../../features/attendance/presentation/screens/attendance_view.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_view.dart';
 import '../../features/employee/domain/models/employee_model.dart';
 import '../../features/employee/presentation/screens/employee_list_view.dart';
@@ -31,19 +32,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isAuth = authState.status == AuthStatus.authenticated;
       final isUnauth = authState.status == AuthStatus.unauthenticated;
-      final isLoggingIn = state.matchedLocation == '/login';
-      final isSplashing = state.matchedLocation == '/splash';
+      final loc = state.matchedLocation;
+      final isLoggingIn = loc == '/login';
+      final isWelcoming = loc == '/welcome';
+      final isSplashing = loc == '/splash';
 
-      if (authState.status == AuthStatus.initial) {
-        return isSplashing ? null : '/splash';
+      // While loading or initial, do not redirect away
+      if (authState.status == AuthStatus.loading || authState.status == AuthStatus.initial) {
+        return null;
       }
 
-      if (isUnauth) {
-        return isLoggingIn ? null : '/login';
-      }
-
+      // If user is authenticated and on auth screens, send to dashboard
       if (isAuth) {
-        return (isLoggingIn || isSplashing) ? '/dashboard' : null;
+        if (isLoggingIn || isWelcoming || isSplashing) {
+          return '/dashboard';
+        }
+        return null;
+      }
+
+      // If unauthenticated:
+      if (isUnauth) {
+        if (isSplashing) {
+          return '/welcome';
+        }
+        // Let the user stay on /login, /welcome without looping!
+        if (isLoggingIn || isWelcoming || loc.startsWith('/verify-otp')) {
+          return null;
+        }
+        // If trying to access internal routes while unauthenticated, redirect to login
+        return '/login';
       }
 
       return null;
@@ -52,6 +69,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WelcomeScreen(),
       ),
       GoRoute(
         path: '/login',
@@ -100,7 +121,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 5: Settings
+          // Branch 5: Settings / Menu
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -111,29 +132,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-
-      // Standalone Routes
+      // Standalone modal / sub-routes
       GoRoute(
         path: '/profile',
         builder: (context, state) => const UserProfileScreen(),
       ),
       GoRoute(
-        path: '/employee',
-        builder: (context, state) => const EmployeeListView(),
-        routes: [
-          GoRoute(
-            path: ':id',
-            builder: (context, state) {
-              final id = state.pathParameters['id'] ?? '';
-              final emp = state.extra as EmployeeModel?;
-              return EmployeeProfileView(employeeId: id, initialEmployee: emp);
-            },
-          ),
-        ],
+        path: '/employee-detail',
+        builder: (context, state) {
+          final employee = state.extra as EmployeeModel?;
+          return EmployeeProfileView(
+            employeeId: employee?.id ?? '',
+            initialEmployee: employee,
+          );
+        },
       ),
       GoRoute(
         path: '/leave',
         builder: (context, state) => const LeaveDashboardView(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationListView(),
+      ),
+      GoRoute(
+        path: '/helpdesk',
+        builder: (context, state) => const HelpdeskListView(),
       ),
       GoRoute(
         path: '/shift',
@@ -154,14 +178,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/recruitment',
         builder: (context, state) => const RecruitmentView(),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationListView(),
-      ),
-      GoRoute(
-        path: '/helpdesk',
-        builder: (context, state) => const HelpdeskListView(),
       ),
     ],
   );

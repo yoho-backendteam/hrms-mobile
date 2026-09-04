@@ -9,6 +9,7 @@ import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../auth/presentation/widgets/organization_selector_sheet.dart';
 import '../../../settings/presentation/screens/face_biometric_settings_view.dart';
 
 class UserProfileScreen extends ConsumerWidget {
@@ -362,9 +363,9 @@ class UserProfileScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  _buildDetailRow(Icons.badge_outlined, 'Employee ID', user?.employeeCode ?? 'CSK-042'),
+                  _buildDetailRow(Icons.badge_outlined, 'Employee ID', user?.employeeCode ?? 'EMP-001'),
                   const Divider(height: AppSpacing.lg),
-                  _buildDetailRow(Icons.business_outlined, 'Company', user?.displayCompanyName ?? 'CSK Technologies'),
+                  _buildDetailRow(Icons.business_outlined, 'Company', user?.displayCompanyName ?? user?.displayCompanyName ?? 'Brook Tech'),
                   const Divider(height: AppSpacing.lg),
                   _buildDetailRow(Icons.apartment_outlined, 'Department', user?.department ?? 'Engineering'),
                   const Divider(height: AppSpacing.lg),
@@ -420,6 +421,34 @@ class UserProfileScreen extends ConsumerWidget {
                           builder: (_) => const FaceBiometricSettingsView(),
                         ),
                       );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.business_outlined, color: AppColors.primary),
+                    title: const Text('Switch Organization', style: AppTextStyles.bodyBold),
+                    subtitle: const Text('Switch workspace for multi-tenant accounts', style: AppTextStyles.caption),
+                    trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    onTap: () async {
+                      final orgs = await ref
+                          .read(authControllerProvider.notifier)
+                          .fetchUserOrganizations();
+                      if (context.mounted) {
+                        if (orgs.isNotEmpty) {
+                          OrganizationSelectorSheet.show(
+                            context,
+                            organizations: orgs,
+                            isSwitchMode: true,
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('No additional organizations linked to your account.'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
                     },
                   ),
                 ],

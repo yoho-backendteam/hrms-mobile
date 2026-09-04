@@ -50,10 +50,18 @@ class UserModel {
   }
 
   String get displayCompanyName {
-    if (tenantName != null && tenantName!.isNotEmpty) {
+    if (tenantName != null && tenantName!.trim().isNotEmpty) {
       return tenantName!;
     }
-    return 'CSK Technologies';
+    if (email.contains('@')) {
+      final domain = email.split('@').last.split('.').first;
+      if (domain.isNotEmpty && !['gmail', 'yahoo', 'outlook', 'hotmail', 'icloud'].contains(domain.toLowerCase())) {
+        return domain.length > 1
+            ? '${domain[0].toUpperCase()}${domain.substring(1)}'
+            : domain.toUpperCase();
+      }
+    }
+    return 'HRMS Workspace';
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {

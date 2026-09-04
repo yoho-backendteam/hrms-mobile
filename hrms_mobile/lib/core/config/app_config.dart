@@ -4,7 +4,7 @@ class AppConfig {
   /// Default API Gateway base URL.
   /// On Android emulator, localhost is mapped to 10.0.2.2:3000.
   /// On iOS simulator or web/desktop, localhost is 127.0.0.1:3000.
-  static const String defaultApiBaseUrl = 'http://10.0.2.2:3000';
+  static const String defaultApiBaseUrl = 'http://10.112.24.182:3000';
   
   static String apiBaseUrl = const String.fromEnvironment(
     'API_BASE_URL',

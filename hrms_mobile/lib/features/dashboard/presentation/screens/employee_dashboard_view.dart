@@ -77,21 +77,21 @@ class EmployeeDashboardView extends ConsumerWidget {
               const AttendanceHeaderWidget(),
               const SizedBox(height: AppSpacing.lg),
 
-              // 2. Attendance Tracked Hours This Week (Real visual bar chart)
+              // 2. Attendance Tracked Hours This Week (Visual chart)
               const WeeklyAttendanceCard(),
               const SizedBox(height: AppSpacing.lg),
 
-              // 3. Upcoming Holidays Widget (Shows upcoming 3 holidays)
+              // 3. Upcoming Holidays Widget
               const UpcomingHolidaysCard(),
               const SizedBox(height: AppSpacing.lg),
 
-              // 4. Quick Shortcuts Grid (Tasks completely removed!)
+              // 4. Quick Shortcuts Grid
               const Text('Quick Shortcuts', style: AppTextStyles.h3),
               const SizedBox(height: AppSpacing.sm),
               QuickActionGrid(items: quickActions),
               const SizedBox(height: AppSpacing.lg),
 
-              // 4. Recent Payroll Period Card
+              // 5. Recent Payroll Period Card
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -145,7 +145,7 @@ class EmployeeDashboardView extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              // 5. Overview & Quotas (No task cards)
+              // 5. Overview & Quotas
               const Text('Overview & Quotas', style: AppTextStyles.h3),
               const SizedBox(height: AppSpacing.sm),
               const Row(
@@ -187,7 +187,7 @@ class EmployeeDashboardView extends ConsumerWidget {
                   Expanded(
                     child: DashboardKpiCard(
                       label: 'Office Location',
-                      value: 'Chennai HQ',
+                      value: 'HQ Office',
                       icon: Icons.location_on_outlined,
                       iconColor: AppColors.success,
                       iconBgColor: AppColors.successLight,

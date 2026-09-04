@@ -23,7 +23,7 @@ class MobileHeaderWidget extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.user;
-    final companyName = user?.displayCompanyName ?? 'CSK Technologies';
+    final companyName = user?.displayCompanyName ?? user?.displayCompanyName ?? 'Brook Tech';
 
     return SafeArea(
       bottom: false,

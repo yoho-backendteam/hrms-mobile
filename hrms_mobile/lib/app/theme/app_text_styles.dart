@@ -38,6 +38,13 @@ class AppTextStyles {
     height: 1.4,
   );
 
+  static const TextStyle bodySecondary = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
+    height: 1.4,
+  );
+
   static const TextStyle body = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w400,

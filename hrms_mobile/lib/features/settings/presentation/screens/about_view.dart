@@ -57,7 +57,7 @@ class AboutView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xxl),
-            const Text('© 2026 CSK Tech HRMS Inc. All rights reserved.', style: AppTextStyles.caption),
+            const Text('© 2026 HRMS Platform Inc. All rights reserved.', style: AppTextStyles.caption),
           ],
         ),
       ),

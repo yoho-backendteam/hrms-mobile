@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/auth_repository.dart';
+import '../../domain/models/organization_model.dart';
 import '../../domain/models/user_model.dart';
 
 enum AuthStatus {
@@ -8,17 +9,22 @@ enum AuthStatus {
   authenticated,
   unauthenticated,
   loading,
+  requiresTenantSelection,
 }
 
 class AuthState {
   final AuthStatus status;
   final UserModel? user;
   final String? errorMessage;
+  final String? selectionToken;
+  final List<OrganizationModel> organizations;
 
   AuthState({
     required this.status,
     this.user,
     this.errorMessage,
+    this.selectionToken,
+    this.organizations = const [],
   });
 
   factory AuthState.initial() => AuthState(status: AuthStatus.initial);
@@ -27,11 +33,15 @@ class AuthState {
     AuthStatus? status,
     UserModel? user,
     String? errorMessage,
+    String? selectionToken,
+    List<OrganizationModel>? organizations,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       errorMessage: errorMessage,
+      selectionToken: selectionToken ?? this.selectionToken,
+      organizations: organizations ?? this.organizations,
     );
   }
 }
@@ -69,7 +79,7 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> login({
+  Future<Map<String, dynamic>> login({
     required String email,
     required String password,
     String? tenantSubdomain,
@@ -83,6 +93,68 @@ class AuthController extends StateNotifier<AuthState> {
         tenantSubdomain: tenantSubdomain,
       );
 
+      if (result['requiresTenantSelection'] == true) {
+        final orgs = (result['organizations'] as List<OrganizationModel>?) ?? [];
+        state = state.copyWith(
+          status: AuthStatus.requiresTenantSelection,
+          selectionToken: result['selectionToken']?.toString(),
+          organizations: orgs,
+        );
+        return {
+          'success': true,
+          'requiresTenantSelection': true,
+          'organizations': orgs,
+          'selectionToken': result['selectionToken'],
+        };
+      }
+
+      final user = result['user'] as UserModel;
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user,
+      );
+      return {'success': true, 'requiresTenantSelection': false, 'user': user};
+    } catch (e) {
+      final err = e.toString().replaceAll('Exception:', '').trim();
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        errorMessage: err,
+      );
+      return {'success': false, 'error': err};
+    }
+  }
+
+  Future<bool> selectTenant(String tenantId) async {
+    if (state.selectionToken == null) return false;
+    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
+
+    try {
+      final result = await _repository.selectTenant(
+        selectionToken: state.selectionToken!,
+        tenantId: tenantId,
+      );
+      final user = result['user'] as UserModel;
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user,
+        selectionToken: null,
+        organizations: const [],
+      );
+      return true;
+    } catch (e) {
+      final err = e.toString().replaceAll('Exception:', '').trim();
+      state = state.copyWith(
+        status: AuthStatus.requiresTenantSelection,
+        errorMessage: err,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> switchOrganization(String targetTenantId) async {
+    state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
+    try {
+      final result = await _repository.switchTenant(targetTenantId: targetTenantId);
       final user = result['user'] as UserModel;
       state = state.copyWith(
         status: AuthStatus.authenticated,
@@ -90,12 +162,17 @@ class AuthController extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
+      final err = e.toString().replaceAll('Exception:', '').trim();
       state = state.copyWith(
-        status: AuthStatus.unauthenticated,
-        errorMessage: e.toString(),
+        status: AuthStatus.authenticated,
+        errorMessage: err,
       );
       return false;
     }
+  }
+
+  Future<List<OrganizationModel>> fetchUserOrganizations() async {
+    return await _repository.getUserOrganizations();
   }
 
   Future<void> updateProfile({

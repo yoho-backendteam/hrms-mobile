@@ -4,10 +4,16 @@ class ApiEndpoints {
 
   // Authentication & Tenant
   static const String login = '/api/auth/tenant/login';
-  static const String refreshToken = '/api/auth/tenant/refresh-token';
+  static const String refreshToken = '/api/auth/tenant/refresh';
+  static const String verifySessionOtp = '/api/auth/tenant/verify-session-otp';
+  static const String resendSessionOtp = '/api/auth/tenant/resend-session-otp';
+  static const String resolveTenant = '/api/auth/tenant/resolve';
   static const String currentUser = '/api/auth/tenant/me';
   static const String userAuthorization = '/api/auth/tenant/authorization';
   static const String permissions = '/api/auth/tenant/permission';
+  static const String selectTenant = '/api/auth/tenant/select-tenant';
+  static const String switchTenant = '/api/auth/tenant/switch-tenant';
+  static const String userOrganizations = '/api/auth/tenant/user-organizations';
 
   // Attendance & Biometrics
   static const String attendanceToday = '/api/attendance/today';

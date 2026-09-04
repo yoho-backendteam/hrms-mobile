@@ -149,16 +149,20 @@ class AttendanceView extends ConsumerWidget {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      StatusBadge.fromStatus(item.status),
-                                      const SizedBox(height: 4),
                                       Text(
                                         DateFormatter.formatMinutesToHours(item.totalWorkMinutes),
-                                        style: AppTextStyles.captionBold.copyWith(color: AppColors.textSecondary),
+                                        style: AppTextStyles.bodyBold,
                                       ),
+                                      const SizedBox(height: 2),
+                                      StatusBadge.fromStatus(item.status),
                                     ],
                                   ),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    size: 18,
+                                    color: AppColors.textMuted,
+                                  ),
                                 ],
                               ),
                             ],
@@ -169,7 +173,7 @@ class AttendanceView extends ConsumerWidget {
                   );
                 },
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),

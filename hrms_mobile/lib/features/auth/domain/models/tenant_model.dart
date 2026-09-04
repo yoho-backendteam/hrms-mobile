@@ -17,7 +17,7 @@ class TenantModel {
     return TenantModel(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? json['company_name']?.toString() ?? 'HRMS Workspace',
-      subdomain: json['subdomain']?.toString() ?? json['subDomain']?.toString() ?? 'csktech',
+      subdomain: json['subdomain']?.toString() ?? json['subDomain']?.toString() ?? json['domain']?.toString() ?? json['tenant_code']?.toString() ?? '',
       logoUrl: json['logoUrl']?.toString() ?? json['logo_url']?.toString(),
       subscriptionPlan: json['subscriptionPlan']?.toString() ?? json['plan']?.toString(),
     );
