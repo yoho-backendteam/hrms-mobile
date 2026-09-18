@@ -18,18 +18,11 @@ class TaskRepository {
       final response = await _apiClient.get(ApiEndpoints.taskList);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => TaskModel.fromJson(item)).toList();
+        return data.map((item) => TaskModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
-      return [
-        TaskModel(id: '1', title: 'Complete Quarterly Security Assessment', priority: 'HIGH', status: 'IN_PROGRESS', dueDate: DateTime.now().add(const Duration(days: 3))),
-        TaskModel(id: '2', title: 'Submit Expense Reimbursement receipts', priority: 'MEDIUM', status: 'PENDING', dueDate: DateTime.now().add(const Duration(days: 5))),
-        TaskModel(id: '3', title: 'Update emergency contact profile', priority: 'LOW', status: 'COMPLETED', dueDate: DateTime.now()),
-      ];
+      return [];
     } catch (_) {
-      return [
-        TaskModel(id: '1', title: 'Complete Quarterly Security Assessment', priority: 'HIGH', status: 'IN_PROGRESS', dueDate: DateTime.now().add(const Duration(days: 3))),
-        TaskModel(id: '2', title: 'Submit Expense Reimbursement receipts', priority: 'MEDIUM', status: 'PENDING', dueDate: DateTime.now().add(const Duration(days: 5))),
-      ];
+      return [];
     }
   }
 

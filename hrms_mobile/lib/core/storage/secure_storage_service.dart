@@ -3,12 +3,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SecureStorageService {
   final FlutterSecureStorage _storage;
   final Map<String, String?> _memoryCache = {};
+  bool _isPreloaded = false;
 
   SecureStorageService({FlutterSecureStorage? storage})
       : _storage = storage ??
             const FlutterSecureStorage(
               aOptions: AndroidOptions(
-                encryptedSharedPreferences: false,
+                encryptedSharedPreferences: true,
                 resetOnError: true,
               ),
               iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -22,6 +23,21 @@ class SecureStorageService {
   static const String _keyPermissions = 'hrms_user_permissions';
   static const String _keyBiometricEnabled = 'hrms_biometric_enabled';
   static const String _keyServerUrl = 'hrms_server_url';
+
+  /// Preloads all stored session data into memory cache on app startup
+  Future<void> preloadSession() async {
+    if (_isPreloaded) return;
+    try {
+      final all = await _storage.readAll().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () => {},
+      );
+      _memoryCache.addAll(all);
+      _isPreloaded = true;
+    } catch (_) {
+      // Graceful fallback
+    }
+  }
 
   Future<void> saveTokens({
     required String accessToken,
@@ -38,14 +54,11 @@ class SecureStorageService {
   }
 
   Future<String?> getAccessToken() async {
-    if (_memoryCache.containsKey(_keyAccessToken)) {
+    if (_memoryCache.containsKey(_keyAccessToken) && _memoryCache[_keyAccessToken] != null) {
       return _memoryCache[_keyAccessToken];
     }
     try {
-      final val = await _storage.read(key: _keyAccessToken).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyAccessToken);
       _memoryCache[_keyAccessToken] = val;
       return val;
     } catch (_) {
@@ -54,14 +67,11 @@ class SecureStorageService {
   }
 
   Future<String?> getRefreshToken() async {
-    if (_memoryCache.containsKey(_keyRefreshToken)) {
+    if (_memoryCache.containsKey(_keyRefreshToken) && _memoryCache[_keyRefreshToken] != null) {
       return _memoryCache[_keyRefreshToken];
     }
     try {
-      final val = await _storage.read(key: _keyRefreshToken).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyRefreshToken);
       _memoryCache[_keyRefreshToken] = val;
       return val;
     } catch (_) {
@@ -84,14 +94,11 @@ class SecureStorageService {
   }
 
   Future<String?> getTenant() async {
-    if (_memoryCache.containsKey(_keyTenant)) {
+    if (_memoryCache.containsKey(_keyTenant) && _memoryCache[_keyTenant] != null) {
       return _memoryCache[_keyTenant];
     }
     try {
-      final val = await _storage.read(key: _keyTenant).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyTenant);
       _memoryCache[_keyTenant] = val;
       return val;
     } catch (_) {
@@ -100,14 +107,11 @@ class SecureStorageService {
   }
 
   Future<String?> getTenantId() async {
-    if (_memoryCache.containsKey(_keyTenantId)) {
+    if (_memoryCache.containsKey(_keyTenantId) && _memoryCache[_keyTenantId] != null) {
       return _memoryCache[_keyTenantId];
     }
     try {
-      final val = await _storage.read(key: _keyTenantId).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyTenantId);
       _memoryCache[_keyTenantId] = val;
       return val;
     } catch (_) {
@@ -123,14 +127,11 @@ class SecureStorageService {
   }
 
   Future<String?> getUserData() async {
-    if (_memoryCache.containsKey(_keyUser)) {
+    if (_memoryCache.containsKey(_keyUser) && _memoryCache[_keyUser] != null) {
       return _memoryCache[_keyUser];
     }
     try {
-      final val = await _storage.read(key: _keyUser).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyUser);
       _memoryCache[_keyUser] = val;
       return val;
     } catch (_) {
@@ -147,16 +148,13 @@ class SecureStorageService {
   }
 
   Future<List<String>> getPermissions() async {
-    if (_memoryCache.containsKey(_keyPermissions)) {
+    if (_memoryCache.containsKey(_keyPermissions) && _memoryCache[_keyPermissions] != null) {
       final raw = _memoryCache[_keyPermissions];
       if (raw == null || raw.isEmpty) return [];
       return raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     }
     try {
-      final raw = await _storage.read(key: _keyPermissions).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final raw = await _storage.read(key: _keyPermissions);
       _memoryCache[_keyPermissions] = raw;
       if (raw == null || raw.isEmpty) return [];
       return raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
@@ -173,14 +171,11 @@ class SecureStorageService {
   }
 
   Future<bool> isBiometricEnabled() async {
-    if (_memoryCache.containsKey(_keyBiometricEnabled)) {
+    if (_memoryCache.containsKey(_keyBiometricEnabled) && _memoryCache[_keyBiometricEnabled] != null) {
       return _memoryCache[_keyBiometricEnabled] == 'true';
     }
     try {
-      final val = await _storage.read(key: _keyBiometricEnabled).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyBiometricEnabled);
       _memoryCache[_keyBiometricEnabled] = val;
       return val == 'true';
     } catch (_) {
@@ -196,14 +191,11 @@ class SecureStorageService {
   }
 
   Future<String?> getServerUrl() async {
-    if (_memoryCache.containsKey(_keyServerUrl)) {
+    if (_memoryCache.containsKey(_keyServerUrl) && _memoryCache[_keyServerUrl] != null) {
       return _memoryCache[_keyServerUrl];
     }
     try {
-      final val = await _storage.read(key: _keyServerUrl).timeout(
-        const Duration(milliseconds: 300),
-        onTimeout: () => null,
-      );
+      final val = await _storage.read(key: _keyServerUrl);
       _memoryCache[_keyServerUrl] = val;
       return val;
     } catch (_) {
@@ -226,6 +218,7 @@ class SecureStorageService {
 
   Future<void> clearAll() async {
     _memoryCache.clear();
+    _isPreloaded = false;
     try {
       await _storage.deleteAll();
     } catch (_) {}

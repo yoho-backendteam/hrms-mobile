@@ -18,18 +18,11 @@ class PayrollRepository {
       final response = await _apiClient.get(ApiEndpoints.payslips);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => PayslipModel.fromJson(item)).toList();
+        return data.map((item) => PayslipModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
-      return [
-        PayslipModel(id: '1', month: 'August', year: '2026', basicSalary: 55000, allowances: 12000, deductions: 4500, netSalary: 62500),
-        PayslipModel(id: '2', month: 'July', year: '2026', basicSalary: 55000, allowances: 12000, deductions: 4500, netSalary: 62500),
-        PayslipModel(id: '3', month: 'June', year: '2026', basicSalary: 55000, allowances: 12000, deductions: 4500, netSalary: 62500),
-      ];
+      return [];
     } catch (_) {
-      return [
-        PayslipModel(id: '1', month: 'August', year: '2026', basicSalary: 55000, allowances: 12000, deductions: 4500, netSalary: 62500),
-        PayslipModel(id: '2', month: 'July', year: '2026', basicSalary: 55000, allowances: 12000, deductions: 4500, netSalary: 62500),
-      ];
+      return [];
     }
   }
 

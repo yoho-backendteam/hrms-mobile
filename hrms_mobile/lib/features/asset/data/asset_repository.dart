@@ -18,16 +18,11 @@ class AssetRepository {
       final response = await _apiClient.get(ApiEndpoints.assetMy);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => AssetModel.fromJson(item)).toList();
+        return data.map((item) => AssetModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
-      return [
-        AssetModel(id: '1', assetName: 'Apple MacBook Pro 16" M3', assetTag: 'AST-LPT-042', category: 'Laptop', serialNumber: 'C02G40ALMD6R'),
-        AssetModel(id: '2', assetName: 'Dell UltraSharp 27" 4K Monitor', assetTag: 'AST-MON-118', category: 'Display', serialNumber: 'CN-0N83P2-74261'),
-      ];
+      return [];
     } catch (_) {
-      return [
-        AssetModel(id: '1', assetName: 'Apple MacBook Pro 16" M3', assetTag: 'AST-LPT-042', category: 'Laptop', serialNumber: 'C02G40ALMD6R'),
-      ];
+      return [];
     }
   }
 }

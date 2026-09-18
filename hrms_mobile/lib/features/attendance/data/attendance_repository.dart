@@ -83,6 +83,7 @@ class AttendanceRepository {
     String breakType = 'lunch',
     String method = 'manual',
     LocationCoords? location,
+    List<double>? faceTemplate,
   }) async {
     final effectiveLocation = location ?? await _geoService.getCurrentLocation();
 
@@ -93,6 +94,7 @@ class AttendanceRepository {
         'breakType': breakType,
         'method': method,
         if (effectiveLocation != null) 'location': effectiveLocation.toJson(),
+        if (faceTemplate != null) 'faceTemplate': faceTemplate,
       },
     );
 
@@ -103,6 +105,7 @@ class AttendanceRepository {
   Future<AttendanceModel> breakOut({
     required String attendanceId,
     LocationCoords? location,
+    List<double>? faceTemplate,
   }) async {
     final effectiveLocation = location ?? await _geoService.getCurrentLocation();
 
@@ -111,6 +114,7 @@ class AttendanceRepository {
       data: {
         'attendanceId': attendanceId,
         if (effectiveLocation != null) 'location': effectiveLocation.toJson(),
+        if (faceTemplate != null) 'faceTemplate': faceTemplate,
       },
     );
 
@@ -121,6 +125,7 @@ class AttendanceRepository {
   Future<AttendanceModel> clockOut({
     required String attendanceId,
     LocationCoords? location,
+    List<double>? faceTemplate,
   }) async {
     final effectiveLocation = location ?? await _geoService.getCurrentLocation();
 
@@ -129,6 +134,7 @@ class AttendanceRepository {
       data: {
         'attendanceId': attendanceId,
         if (effectiveLocation != null) 'location': effectiveLocation.toJson(),
+        if (faceTemplate != null) 'faceTemplate': faceTemplate,
       },
     );
 

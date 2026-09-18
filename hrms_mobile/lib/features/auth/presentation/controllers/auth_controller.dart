@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../../../core/network/api_client.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 import '../../data/auth_repository.dart';
 import '../../domain/models/organization_model.dart';
 import '../../domain/models/user_model.dart';
@@ -49,19 +50,28 @@ class AuthState {
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return AuthController(repository: repository);
+  final storage = ref.watch(secureStorageProvider);
+  return AuthController(repository: repository, storage: storage);
 });
 
 class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _repository;
+  final SecureStorageService _storage;
 
-  AuthController({required AuthRepository repository})
-      : _repository = repository,
+  AuthController({
+    required AuthRepository repository,
+    required SecureStorageService storage,
+  })  : _repository = repository,
+        _storage = storage,
         super(AuthState.initial()) {
     checkAuthSession();
   }
 
   Future<void> checkAuthSession() async {
+    try {
+      await _storage.preloadSession();
+    } catch (_) {}
+
     final hasSession = await _repository.hasValidSession();
     if (!hasSession) {
       state = state.copyWith(status: AuthStatus.unauthenticated);

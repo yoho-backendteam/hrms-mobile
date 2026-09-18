@@ -23,7 +23,13 @@ class MobileHeaderWidget extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.user;
-    final companyName = user?.displayCompanyName ?? user?.displayCompanyName ?? 'Brook Tech';
+    final userDisplay = user?.displayCompanyName;
+    final tenantId = user?.tenantId;
+    final companyName = (userDisplay != null && userDisplay.isNotEmpty)
+        ? userDisplay
+        : ((tenantId != null && tenantId.isNotEmpty)
+            ? 'Tenant $tenantId'
+            : 'Enterprise HRMS');
 
     return SafeArea(
       bottom: false,
@@ -45,25 +51,30 @@ class MobileHeaderWidget extends ConsumerWidget implements PreferredSizeWidget {
         ),
         child: Row(
           children: [
-            // Left: User Profile Avatar
+            // Left: Hamburger Drawer Action & Profile Avatar
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 24),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            ),
+            const SizedBox(width: AppSpacing.xs),
             GestureDetector(
               onTap: () => context.push('/profile'),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 19,
-                    backgroundColor: AppColors.primaryLight,
-                    child: Text(
-                      user?.fullName.isNotEmpty == true
-                          ? user!.fullName[0].toUpperCase()
-                          : 'U',
-                      style: AppTextStyles.bodyBold.copyWith(
-                        color: AppColors.primary,
-                        fontSize: 15,
-                      ),
-                    ),
+              child: CircleAvatar(
+                radius: 17,
+                backgroundColor: AppColors.primaryLight,
+                child: Text(
+                  user?.fullName.isNotEmpty == true
+                      ? user!.fullName[0].toUpperCase()
+                      : 'U',
+                  style: AppTextStyles.bodyBold.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 14,
                   ),
-                ],
+                ),
               ),
             ),
 

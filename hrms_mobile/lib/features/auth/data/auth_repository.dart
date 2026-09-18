@@ -195,9 +195,7 @@ class AuthRepository {
     }
 
     try {
-      final response = await _apiClient.get(ApiEndpoints.userAuthorization).timeout(
-        const Duration(milliseconds: 800),
-      );
+      final response = await _apiClient.get(ApiEndpoints.userAuthorization);
       final data = response['data'] ?? response;
       if (data is Map<String, dynamic>) {
         final user = UserModel.fromJson(data);

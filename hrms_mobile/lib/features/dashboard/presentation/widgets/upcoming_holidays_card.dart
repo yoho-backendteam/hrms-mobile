@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/widgets/empty_state_card.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../leave/data/leave_repository.dart';
 import '../../../leave/domain/models/leave_model.dart';
 
@@ -101,23 +103,45 @@ class UpcomingHolidaysCard extends ConsumerWidget {
 
           // Content List
           upcomingAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: AppColors.primary,
+            loading: () => Column(
+              children: List.generate(
+                2,
+                (index) => const Padding(
+                  padding: EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Row(
+                    children: [
+                      LoadingSkeleton(width: 44, height: 44, borderRadius: 12),
+                      SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LoadingSkeleton(width: 140, height: 14),
+                            SizedBox(height: 6),
+                            LoadingSkeleton(width: 80, height: 11),
+                          ],
+                        ),
+                      ),
+                      LoadingSkeleton(width: 50, height: 20, borderRadius: 10),
+                    ],
                   ),
                 ),
               ),
             ),
-            error: (_, __) => _buildFallbackList(context),
+            error: (_, __) => const EmptyStateCard(
+              icon: Icons.calendar_month_outlined,
+              title: 'No Upcoming Holidays',
+              subtitle: 'No scheduled public holidays for the current period.',
+              verticalPadding: 16,
+            ),
             data: (holidays) {
               if (holidays.isEmpty) {
-                return _buildFallbackList(context);
+                return const EmptyStateCard(
+                  icon: Icons.calendar_month_outlined,
+                  title: 'No Upcoming Holidays',
+                  subtitle: 'No scheduled public holidays for the current period.',
+                  verticalPadding: 16,
+                );
               }
               return Column(
                 children: holidays
@@ -128,34 +152,6 @@ class UpcomingHolidaysCard extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildFallbackList(BuildContext context) {
-    final fallbackList = [
-      HolidayModel(
-        id: 'h1',
-        name: 'Gandhi Jayanthi',
-        startDate: DateTime(2026, 10, 2),
-        endDate: DateTime(2026, 10, 2),
-      ),
-      HolidayModel(
-        id: 'h2',
-        name: 'Diwali Festival',
-        startDate: DateTime(2026, 11, 8),
-        endDate: DateTime(2026, 11, 8),
-      ),
-      HolidayModel(
-        id: 'h3',
-        name: 'Christmas Day',
-        startDate: DateTime(2026, 12, 25),
-        endDate: DateTime(2026, 12, 25),
-      ),
-    ];
-    return Column(
-      children: fallbackList
-          .map((h) => _buildHolidayItem(context, h))
-          .toList(),
     );
   }
 

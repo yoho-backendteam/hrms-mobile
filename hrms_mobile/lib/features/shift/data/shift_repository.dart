@@ -18,16 +18,11 @@ class ShiftRepository {
       final response = await _apiClient.get(ApiEndpoints.shiftAssigned);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => ShiftModel.fromJson(item)).toList();
+        return data.map((item) => ShiftModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
-      return [
-        ShiftModel(id: '1', name: 'Standard Day Shift', startTime: '09:00 AM', endTime: '06:00 PM', isDefault: true),
-        ShiftModel(id: '2', name: 'Flexible Shift', startTime: '10:00 AM', endTime: '07:00 PM'),
-      ];
+      return [];
     } catch (_) {
-      return [
-        ShiftModel(id: '1', name: 'Standard Day Shift', startTime: '09:00 AM', endTime: '06:00 PM', isDefault: true),
-      ];
+      return [];
     }
   }
 
@@ -38,9 +33,9 @@ class ShiftRepository {
       if (data is Map<String, dynamic> && data.isNotEmpty) {
         return ShiftModel.fromJson(data);
       }
-      return ShiftModel(id: '1', name: 'General Shift', startTime: '09:00 AM', endTime: '06:00 PM', isDefault: true);
+      return null;
     } catch (_) {
-      return ShiftModel(id: '1', name: 'General Shift', startTime: '09:00 AM', endTime: '06:00 PM', isDefault: true);
+      return null;
     }
   }
 }

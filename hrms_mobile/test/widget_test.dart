@@ -10,5 +10,9 @@ void main() {
       ),
     );
     expect(find.byType(HrmsApp), findsOneWidget);
+
+    // Allow splash timer to complete cleanly
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
   });
 }

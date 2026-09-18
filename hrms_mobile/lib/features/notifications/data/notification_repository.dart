@@ -18,34 +18,11 @@ class NotificationRepository {
       final response = await _apiClient.get(ApiEndpoints.notifications);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => NotificationModel.fromJson(item)).toList();
+        return data.map((item) => NotificationModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
-      return [
-        NotificationModel(
-          id: '1',
-          title: 'Face Recognition Verified',
-          message: 'Your facial biometric clock-in for today has been successfully verified.',
-          type: 'ATTENDANCE',
-          createdAt: DateTime.now().subtract(const Duration(minutes: 45)),
-        ),
-        NotificationModel(
-          id: '2',
-          title: 'August Payslip Available',
-          message: 'Your confidential salary payslip for August 2026 is ready to download.',
-          type: 'PAYROLL',
-          createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-        ),
-      ];
+      return [];
     } catch (_) {
-      return [
-        NotificationModel(
-          id: '1',
-          title: 'Face Recognition Verified',
-          message: 'Your facial biometric clock-in for today has been successfully verified.',
-          type: 'ATTENDANCE',
-          createdAt: DateTime.now().subtract(const Duration(minutes: 45)),
-        ),
-      ];
+      return [];
     }
   }
 

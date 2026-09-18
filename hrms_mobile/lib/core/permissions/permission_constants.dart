@@ -117,6 +117,7 @@ class AppPermissions {
   static const String employeeDocumentRead = 'employee_document.read';
   static const String policyRead = 'policy.read';
   static const String exitRead = 'exit.read';
+  static const String performanceRead = 'performance.read';
   static const String referralRead = 'referral.read';
   static const String referralCreate = 'referral.create';
 

@@ -46,26 +46,36 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     });
   }
 
+  void _cancelTimers() {
+    _minDisplayTimer?.cancel();
+    _minDisplayTimer = null;
+    _maxTimeoutTimer?.cancel();
+    _maxTimeoutTimer = null;
+  }
+
   void _checkAndNavigate() {
     if (!mounted || _navigated || !_minTimeElapsed) return;
     final authState = ref.read(authControllerProvider);
     if (authState.status == AuthStatus.authenticated) {
       _navigated = true;
+      _cancelTimers();
       context.go('/dashboard');
     } else if (authState.status == AuthStatus.unauthenticated) {
       _navigated = true;
-      context.go('/welcome');
+      _cancelTimers();
+      context.go('/login');
     }
   }
 
   void _forceNavigate() {
     if (!mounted || _navigated) return;
     _navigated = true;
+    _cancelTimers();
     final authState = ref.read(authControllerProvider);
     if (authState.status == AuthStatus.authenticated) {
       context.go('/dashboard');
     } else {
-      context.go('/welcome');
+      context.go('/login');
     }
   }
 

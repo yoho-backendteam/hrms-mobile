@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/permissions/permission_provider.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../data/helpdesk_repository.dart';
 import '../../domain/models/ticket_model.dart';
@@ -154,7 +155,38 @@ class _TicketDetailsViewState extends ConsumerState<TicketDetailsView> {
                   const SizedBox(height: AppSpacing.sm),
 
                   commentsAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    loading: () => Column(
+                      children: List.generate(
+                        2,
+                        (index) => Container(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          padding: AppSpacing.cardPadding,
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  SkeletonAvatar(size: 28),
+                                  SizedBox(width: AppSpacing.sm),
+                                  LoadingSkeleton(width: 110, height: 13),
+                                  Spacer(),
+                                  LoadingSkeleton(width: 60, height: 10),
+                                ],
+                              ),
+                              SizedBox(height: AppSpacing.sm),
+                              LoadingSkeleton(width: double.infinity, height: 12),
+                              SizedBox(height: 6),
+                              LoadingSkeleton(width: 180, height: 12),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     error: (e, _) => Text('No comments yet or error loading: $e', style: AppTextStyles.caption),
                     data: (comments) {
                       if (comments.isEmpty) {

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/permissions/permission_constants.dart';
 import '../../core/permissions/permission_provider.dart';
+import '../../core/widgets/access_restricted_view.dart';
 import '../../features/asset/presentation/screens/my_assets_view.dart';
 import '../../features/attendance/presentation/screens/attendance_view.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
@@ -25,7 +27,20 @@ import 'main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
-  final isHR = ref.watch(isHRorAdminProvider);
+  final userPermissions = ref.watch(userPermissionsProvider);
+  final isOwner = ref.watch(isTenantOwnerProvider);
+
+  bool hasPerm(String perm) {
+    if (isOwner) return true;
+    if (userPermissions.contains(AppPermissions.all)) return true;
+    return userPermissions.contains(perm);
+  }
+
+  bool hasAnyPerm(List<String> perms) {
+    if (isOwner) return true;
+    if (userPermissions.contains(AppPermissions.all)) return true;
+    return perms.any((p) => userPermissions.contains(p));
+  }
 
   return GoRouter(
     initialLocation: '/splash',
@@ -37,12 +52,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isWelcoming = loc == '/welcome';
       final isSplashing = loc == '/splash';
 
-      // While loading or initial, do not redirect away
-      if (authState.status == AuthStatus.loading || authState.status == AuthStatus.initial) {
-        return null;
-      }
-
-      // If user is authenticated and on auth screens, send to dashboard
+      // If user is authenticated and on auth/welcome/splash screens, send immediately to dashboard
       if (isAuth) {
         if (isLoggingIn || isWelcoming || isSplashing) {
           return '/dashboard';
@@ -50,16 +60,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // If unauthenticated:
-      if (isUnauth) {
+      // If initial launch / checking session, allow splash screen to display and check session
+      if (authState.status == AuthStatus.initial) {
         if (isSplashing) {
-          return '/welcome';
-        }
-        // Let the user stay on /login, /welcome without looping!
-        if (isLoggingIn || isWelcoming || loc.startsWith('/verify-otp')) {
           return null;
         }
-        // If trying to access internal routes while unauthenticated, redirect to login
+        if (isWelcoming) {
+          return '/splash';
+        }
+        return null;
+      }
+
+      // If unauthenticated: bypass welcome/splash and navigate directly to login
+      if (isUnauth) {
+        if (isSplashing || isWelcoming) {
+          return '/login';
+        }
+        if (isLoggingIn || loc.startsWith('/verify-otp')) {
+          return null;
+        }
         return '/login';
       }
 
@@ -83,7 +102,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return MainScaffold(navigationShell: navigationShell);
         },
         branches: [
-          // Branch 1: Dashboard Home
+          // Branch 0: Dashboard Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -92,7 +111,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 2: Attendance
+          // Branch 1: Attendance
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -101,23 +120,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 3: Employees (HR) or Leave (Employee)
+          // Branch 2: Leave
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/third-tab',
-                builder: (context, state) {
-                  return isHR ? const EmployeeListView() : const LeaveDashboardView();
-                },
+                path: '/leave',
+                builder: (context, state) => const LeaveDashboardView(),
               ),
             ],
           ),
-          // Branch 4: Payroll
+          // Branch 3: Payroll
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/payroll',
-                builder: (context, state) => const PayrollOverviewView(),
+                builder: (context, state) {
+                  return hasAnyPerm([AppPermissions.payrollRead, AppPermissions.payslipRead])
+                      ? const PayrollOverviewView()
+                      : const AccessRestrictedView(
+                          moduleName: 'Payroll & Payslips',
+                          requiredPermission: AppPermissions.payrollRead,
+                        );
+                },
+              ),
+            ],
+          ),
+          // Branch 4: Employees
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/employees',
+                builder: (context, state) {
+                  return hasPerm(AppPermissions.employeeRead)
+                      ? const EmployeeListView()
+                      : const AccessRestrictedView(
+                          moduleName: 'Employee Directory',
+                          requiredPermission: AppPermissions.employeeRead,
+                        );
+                },
               ),
             ],
           ),
@@ -140,6 +180,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/employee-detail',
         builder: (context, state) {
+          if (!hasPerm(AppPermissions.employeeRead)) {
+            return const AccessRestrictedView(
+              moduleName: 'Employee Directory',
+              requiredPermission: AppPermissions.employeeRead,
+            );
+          }
           final employee = state.extra as EmployeeModel?;
           return EmployeeProfileView(
             employeeId: employee?.id ?? '',
@@ -148,8 +194,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/leave',
-        builder: (context, state) => const LeaveDashboardView(),
+        path: '/third-tab',
+        redirect: (context, state) => '/employees',
       ),
       GoRoute(
         path: '/notifications',
@@ -157,11 +203,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/helpdesk',
-        builder: (context, state) => const HelpdeskListView(),
+        builder: (context, state) {
+          return hasPerm(AppPermissions.helpdeskRead)
+              ? const HelpdeskListView()
+              : const AccessRestrictedView(
+                  moduleName: 'Helpdesk & Support',
+                  requiredPermission: AppPermissions.helpdeskRead,
+                );
+        },
       ),
       GoRoute(
         path: '/shift',
-        builder: (context, state) => const ShiftRosterView(),
+        builder: (context, state) {
+          return hasAnyPerm([AppPermissions.shiftRead, AppPermissions.shiftRosterRead])
+              ? const ShiftRosterView()
+              : const AccessRestrictedView(
+                  moduleName: 'Shift & Rostering',
+                  requiredPermission: AppPermissions.shiftRead,
+                );
+        },
       ),
       GoRoute(
         path: '/tasks',
@@ -169,15 +229,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/assets',
-        builder: (context, state) => const MyAssetsView(),
+        builder: (context, state) {
+          return hasAnyPerm([AppPermissions.assetRead, AppPermissions.assetRequestRead])
+              ? const MyAssetsView()
+              : const AccessRestrictedView(
+                  moduleName: 'Asset Inventory',
+                  requiredPermission: AppPermissions.assetRead,
+                );
+        },
       ),
       GoRoute(
         path: '/performance',
-        builder: (context, state) => const PerformanceView(),
+        builder: (context, state) {
+          return hasPerm(AppPermissions.performanceRead)
+              ? const PerformanceView()
+              : const AccessRestrictedView(
+                  moduleName: 'Performance Reviews',
+                  requiredPermission: AppPermissions.performanceRead,
+                );
+        },
       ),
       GoRoute(
         path: '/recruitment',
-        builder: (context, state) => const RecruitmentView(),
+        builder: (context, state) {
+          return hasPerm(AppPermissions.recruitmentRead)
+              ? const RecruitmentView()
+              : const AccessRestrictedView(
+                  moduleName: 'Recruitment & ATS',
+                  requiredPermission: AppPermissions.recruitmentRead,
+                );
+        },
       ),
     ],
   );

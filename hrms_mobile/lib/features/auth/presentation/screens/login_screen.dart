@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../domain/models/organization_model.dart';
@@ -82,6 +83,87 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void _showServerConfigDialog() {
+    final client = ref.read(apiClientProvider);
+    final urlController = TextEditingController(text: client.baseUrl);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.dns_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Text('Server Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'API Gateway Base URL:',
+              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: urlController,
+              decoration: InputDecoration(
+                hintText: 'http://10.120.120.240:3000',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
+            ),
+            const SizedBox(height: 12),
+            const Text('Quick Presets:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8))),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ActionChip(
+                  label: const Text('LAN Host', style: TextStyle(fontSize: 11)),
+                  onPressed: () => urlController.text = 'http://10.120.120.240:3000',
+                ),
+                ActionChip(
+                  label: const Text('Android (10.0.2.2)', style: TextStyle(fontSize: 11)),
+                  onPressed: () => urlController.text = 'http://10.0.2.2:3000',
+                ),
+                ActionChip(
+                  label: const Text('Localhost', style: TextStyle(fontSize: 11)),
+                  onPressed: () => urlController.text = 'http://localhost:3000',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              final newUrl = urlController.text.trim();
+              if (newUrl.isNotEmpty) {
+                client.updateBaseUrl(newUrl);
+                AppToast.showSuccess(context, 'Server URL updated to $newUrl');
+              }
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Save & Apply', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +176,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.dns_outlined, color: Color(0xFF94A3B8), size: 22),
+                    tooltip: 'Server Settings',
+                    onPressed: _showServerConfigDialog,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Center(
                   child: Column(
                     children: [

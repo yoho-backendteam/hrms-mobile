@@ -18,18 +18,11 @@ class LeaveRepository {
       final response = await _apiClient.get(ApiEndpoints.leaveBalances);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => LeaveBalanceModel.fromJson(item)).toList();
+        return data.map((item) => LeaveBalanceModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
-      return [
-        LeaveBalanceModel(leaveType: 'Casual Leave', totalAllocated: 12, used: 2, remaining: 10),
-        LeaveBalanceModel(leaveType: 'Sick Leave', totalAllocated: 8, used: 1, remaining: 7),
-        LeaveBalanceModel(leaveType: 'Annual Privilege', totalAllocated: 15, used: 5, remaining: 10),
-      ];
+      return [];
     } catch (_) {
-      return [
-        LeaveBalanceModel(leaveType: 'Casual Leave', totalAllocated: 12, used: 2, remaining: 10),
-        LeaveBalanceModel(leaveType: 'Sick Leave', totalAllocated: 8, used: 1, remaining: 7),
-      ];
+      return [];
     }
   }
 
@@ -38,7 +31,7 @@ class LeaveRepository {
       final response = await _apiClient.get(ApiEndpoints.leaveMyRequests);
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => LeaveRequestModel.fromJson(item)).toList();
+        return data.map((item) => LeaveRequestModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
       return [];
     } catch (_) {
@@ -54,7 +47,7 @@ class LeaveRepository {
       );
       final data = response['data'] ?? response;
       if (data is List) {
-        return data.map((item) => LeaveRequestModel.fromJson(item)).toList();
+        return data.map((item) => LeaveRequestModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
       }
       return [];
     } catch (_) {
@@ -98,13 +91,13 @@ class LeaveRepository {
       final response = await _apiClient.get(ApiEndpoints.leaveHolidays);
       final data = response['data'] ?? response;
       if (data is List) {
-        final list = data.map((item) => HolidayModel.fromJson(item)).toList();
+        final list = data.map((item) => HolidayModel.fromJson(item is Map<String, dynamic> ? item : {})).toList();
         list.sort((a, b) => a.startDate.compareTo(b.startDate));
         return list;
       }
-      return _fallbackHolidays();
+      return [];
     } catch (_) {
-      return _fallbackHolidays();
+      return [];
     }
   }
 
@@ -116,40 +109,7 @@ class LeaveRepository {
     if (upcoming.isNotEmpty) {
       return upcoming.take(limit).toList();
     }
-    return _fallbackHolidays().take(limit).toList();
-  }
-
-  List<HolidayModel> _fallbackHolidays() {
-    return [
-      HolidayModel(
-        id: 'h1',
-        name: 'Gandhi Jayanthi',
-        startDate: DateTime(2026, 10, 2),
-        endDate: DateTime(2026, 10, 2),
-        description: 'Mahatma Gandhi Birthday',
-      ),
-      HolidayModel(
-        id: 'h2',
-        name: 'Diwali Festival',
-        startDate: DateTime(2026, 11, 8),
-        endDate: DateTime(2026, 11, 8),
-        description: 'Festival of Lights',
-      ),
-      HolidayModel(
-        id: 'h3',
-        name: 'Christmas Day',
-        startDate: DateTime(2026, 12, 25),
-        endDate: DateTime(2026, 12, 25),
-        description: 'Christmas Celebration',
-      ),
-      HolidayModel(
-        id: 'h4',
-        name: 'New Year Day',
-        startDate: DateTime(2027, 1, 1),
-        endDate: DateTime(2027, 1, 1),
-        description: 'New Year Celebration',
-      ),
-    ];
+    return [];
   }
 }
 
@@ -162,4 +122,3 @@ final upcomingHolidaysProvider =
     FutureProvider.autoDispose<List<HolidayModel>>((ref) async {
   return ref.watch(leaveRepositoryProvider).getUpcomingHolidays(limit: 3);
 });
-

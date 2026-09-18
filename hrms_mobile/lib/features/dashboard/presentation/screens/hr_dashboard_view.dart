@@ -6,7 +6,9 @@ import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/widgets/mobile_header_widget.dart';
 import '../../../attendance/presentation/widgets/attendance_header_widget.dart';
 import '../../../attendance/presentation/widgets/weekly_attendance_card.dart';
+import '../../../employee/presentation/screens/employee_list_view.dart';
 import '../../../leave/data/leave_repository.dart';
+import '../../../leave/presentation/screens/leave_dashboard_view.dart';
 import '../widgets/dashboard_kpis.dart';
 import '../widgets/quick_action_grid.dart';
 import '../widgets/upcoming_holidays_card.dart';
@@ -16,6 +18,34 @@ class HrDashboardView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final employeesAsync = ref.watch(employeeListProvider);
+    final pendingLeavesAsync = ref.watch(leavePendingApprovalsProvider);
+    final upcomingHolidaysAsync = ref.watch(upcomingHolidaysProvider);
+
+    final totalEmployees = employeesAsync.when(
+      data: (list) => list.length.toString(),
+      loading: () => '...',
+      error: (_, __) => '--',
+    );
+
+    final activeEmployees = employeesAsync.when(
+      data: (list) => list.where((e) => e.status == 'ACTIVE').length.toString(),
+      loading: () => '...',
+      error: (_, __) => '--',
+    );
+
+    final pendingLeavesCount = pendingLeavesAsync.when(
+      data: (list) => '${list.length} Requests',
+      loading: () => '...',
+      error: (_, __) => '--',
+    );
+
+    final holidaysCount = upcomingHolidaysAsync.when(
+      data: (list) => '${list.length} Upcoming',
+      loading: () => '...',
+      error: (_, __) => '--',
+    );
+
     final hrQuickActions = [
       const QuickActionItem(
         title: 'Employees',
@@ -55,6 +85,8 @@ class HrDashboardView extends ConsumerWidget {
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
+          ref.invalidate(employeeListProvider);
+          ref.invalidate(leavePendingApprovalsProvider);
           ref.invalidate(upcomingHolidaysProvider);
         },
         child: SingleChildScrollView(
@@ -77,61 +109,63 @@ class HrDashboardView extends ConsumerWidget {
               QuickActionGrid(items: hrQuickActions),
               const SizedBox(height: AppSpacing.lg),
 
-              // 3. Organization Metrics
+              // 4. Real Organization Metrics (zero hardcoded counts)
               const Text('Organization Headcount & Quotas', style: AppTextStyles.h3),
               const SizedBox(height: AppSpacing.sm),
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: DashboardKpiCard(
                       label: 'Total Workforce',
-                      value: '128',
+                      value: totalEmployees,
                       icon: Icons.groups_rounded,
                       iconColor: AppColors.info,
                       iconBgColor: AppColors.infoLight,
-                      trend: '+4 this month',
+                      trend: 'Registered headcount',
                     ),
                   ),
-                  SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: DashboardKpiCard(
-                      label: 'Present Today',
-                      value: '116',
+                      label: 'Active Staff',
+                      value: activeEmployees,
                       icon: Icons.how_to_reg_rounded,
                       iconColor: AppColors.success,
                       iconBgColor: AppColors.successLight,
-                      trend: '90.6% attendance',
+                      trend: 'Active records',
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: DashboardKpiCard(
-                      label: 'On Leave',
-                      value: '8 Members',
+                      label: 'Leave Requests',
+                      value: pendingLeavesCount,
                       icon: Icons.event_busy_rounded,
                       iconColor: AppColors.warning,
                       iconBgColor: AppColors.warningLight,
+                      trend: 'Pending approvals',
                     ),
                   ),
-                  SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: DashboardKpiCard(
-                      label: 'Open Positions',
-                      value: '6 Roles',
-                      icon: Icons.person_search_rounded,
+                      label: 'Holiday Cycle',
+                      value: holidaysCount,
+                      icon: Icons.calendar_month_outlined,
                       iconColor: AppColors.purple,
                       iconBgColor: AppColors.purpleLight,
+                      trend: 'Public calendar',
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              // 4. Tracked Hours Overview
+              // 5. Tracked Hours Overview
               const WeeklyAttendanceCard(),
               const SizedBox(height: AppSpacing.xl),
             ],
